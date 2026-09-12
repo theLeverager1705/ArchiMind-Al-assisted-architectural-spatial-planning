@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ArchiMind — AI Architectural &amp; Spatial Planning</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📐</text></svg>">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <svg class="logo" viewBox="0 0 32 32" aria-hidden="true">
+      <path d="M4 27V13L16 4l12 9v14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
+      <path d="M11 27v-8h10v8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
+    </svg>
+    <div>
+      <h1>ArchiMind</h1>
+      <p>AI-assisted architectural &amp; spatial planning</p>
+    </div>
+  </div>
+
+  <div class="topbar-right">
+    <div class="score-pill" id="scorePill" title="Layout quality score">
+      <span class="score-val" id="scoreVal">—</span>
+      <span class="score-lbl">layout score</span>
+    </div>
+    <div class="status-pill" id="compliancePill">
+      <span id="complianceText">Not generated</span>
+    </div>
+    <div class="ai-badge" id="aiBadge" title="AI provider status">
+      <span class="dot"></span><span id="aiBadgeText">checking…</span>
+    </div>
+    <button class="btn ghost" id="btnExport">Export</button>
+    <button class="btn primary" id="btnGenerate">Generate plan</button>
+  </div>
+</header>
+
+<main class="layout">
+
+  <!-- ─────────────── LEFT: requirements ─────────────── -->
+  <aside class="panel panel-left" id="panelLeft">
+    <section class="card ai-card">
+      <div class="card-head">
+        <h2>1 · Describe the brief</h2>
+        <span class="hint" id="aiSourceHint"></span>
+      </div>
+      <textarea id="briefText" rows="4" spellcheck="false"
+        placeholder="e.g. 3BHK duplex on a 30x40 site, G+1, car parking, pooja room, utility, two balconies, east facing"></textarea>
+      <div class="row gap">
+        <button class="btn small primary" id="btnInterpret">Interpret with AI</button>
+        <button class="btn small ghost" id="btnSample">Try a sample</button>
+      </div>
+      <ul class="understood" id="understoodList" hidden></ul>
+    </section>
+
+    <section class="card">
+      <div class="card-head"><h2>2 · Plot &amp; setbacks</h2>
+        <button class="linkbtn" id="btnLegalSetbacks" title="Apply the development-control minimum for this frontage">use legal minimum</button>
+      </div>
+      <div class="grid2">
+        <label>Width<span class="unit" id="unitW">ft</span>
+          <input type="number" id="plot_width" value="30" min="10" max="400" step="1"></label>
+        <label>Depth<span class="unit" id="unitD">ft</span>
+          <input type="number" id="plot_depth" value="40" min="10" max="500" step="1"></label>
+      </div>
+      <div class="seg" id="unitsSeg" role="group" aria-label="Units">
+        <button data-units="ft" class="active">feet</button>
+        <button data-units="m">metres</button>
+      </div>
+      <p class="micro" id="plotSummary"></p>
+      <div class="grid2">
+        <label>Front setback<span class="unit">m</span>
+          <input type="number" id="setback_front" value="1.5" min="0" max="12" step="0.1"></label>
+        <label>Rear setback<span class="unit">m</span>
+          <input type="number" id="setback_rear" value="1" min="0" max="12" step="0.1"></label>
+        <label>Left setback<span class="unit">m</span>
+          <input type="number" id="setback_left" value="0.9" min="0" max="12" step="0.1"></label>
+        <label>Right setback<span class="unit">m</span>
+          <input type="number" id="setback_right" value="0.9" min="0" max="12" step="0.1"></label>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head"><h2>3 · Programme</h2></div>
+      <label class="slider">Floors <output id="floorsOut">2</output>
+        <input type="range" id="floors" min="1" max="4" step="1" value="2"></label>
+      <label class="slider">Bedrooms <output id="bedroomsOut">3</output>
+        <input type="range" id="bedrooms" min="0" max="8" step="1" value="3"></label>
+      <label class="slider">Bathrooms <output id="bathroomsOut">auto</output>
+        <input type="range" id="bathrooms" min="0" max="8" step="1" value="0"></label>
+      <label class="slider">Car spaces <output id="parking_carsOut">1</output>
+        <input type="range" id="parking_cars" min="0" max="4" step="1" value="1"></label>
+      <div class="seg" id="parkingSeg" role="group" aria-label="Parking type">
+        <button data-parking="covered" class="active">covered</button>
+        <button data-parking="open">open (in setback)</button>
+      </div>
+      <label class="slider">Balconies <output id="balconiesOut">1</output>
+        <input type="range" id="balconies" min="0" max="6" step="1" value="1"></label>
+
+      <p class="sublabel">Additional spaces</p>
+      <div class="chips" id="extrasChips">
+        <button data-extra="pooja">Pooja</button>
+        <button data-extra="utility">Utility</button>
+        <button data-extra="store">Store</button>
+        <button data-extra="study">Study</button>
+        <button data-extra="home_office">Home office</button>
+        <button data-extra="guest_bedroom">Guest room</button>
+      </div>
+      <label class="check"><input type="checkbox" id="ground_bedroom"> Bedroom on the ground floor</label>
+    </section>
+
+    <section class="card">
+      <div class="card-head"><h2>4 · Roof, finish &amp; controls</h2></div>
+      <div class="grid2">
+        <label>Roof
+          <select id="roof_type">
+            <option value="terrace" selected>Open terrace</option>
+            <option value="flat">Flat slab</option>
+            <option value="sloped">Sloped / tiled</option>
+          </select></label>
+        <label>Entrance faces
+          <select id="facing">
+            <option value="N" selected>North</option><option value="E">East</option>
+            <option value="S">South</option><option value="W">West</option>
+          </select></label>
+        <label>Specification
+          <select id="quality">
+            <option value="economy">Economy</option>
+            <option value="standard" selected>Standard</option>
+            <option value="premium">Premium</option>
+            <option value="luxury">Luxury</option>
+          </select></label>
+        <label>Location
+          <select id="city_tier">
+            <option value="tier1">Metro / Tier 1</option>
+            <option value="tier2" selected>Tier 2 city</option>
+            <option value="tier3">Tier 3 / town</option>
+          </select></label>
+        <label>Max FAR
+          <input type="number" id="max_far" value="2" min="0.5" max="6" step="0.1"></label>
+        <label>Max coverage
+          <input type="number" id="max_coverage" value="" placeholder="auto" min="0.2" max="0.95" step="0.05"></label>
+      </div>
+      <label class="check"><input type="checkbox" id="autoUpdate" checked> Regenerate automatically on change</label>
+      <label class="slider">Search effort <output id="restartsOut">500</output>
+        <input type="range" id="restarts" min="60" max="900" step="20" value="500"></label>
+    </section>
+  </aside>
+
+  <!-- ─────────────── CENTRE: drawing ─────────────── -->
+  <section class="stage">
+    <div class="stage-bar">
+      <div class="seg" id="viewSeg" role="group" aria-label="View mode">
+        <button data-view="2d" class="active">2D plan</button>
+        <button data-view="3d">3D model</button>
+        <button data-view="split">Split</button>
+      </div>
+      <div class="floor-tabs" id="floorTabs"></div>
+      <div class="stage-tools">
+        <label class="toggle"><input type="checkbox" id="showFurniture" checked> Furniture</label>
+        <label class="toggle"><input type="checkbox" id="showDims" checked> Dimensions</label>
+        <label class="toggle"><input type="checkbox" id="showZones"> Zone colours</label>
+        <button class="linkbtn" id="btnFit">Fit</button>
+      </div>
+    </div>
+
+    <div class="viewports" id="viewports">
+      <div class="viewport" id="vp2d">
+        <div id="svgHost" class="svg-host"></div>
+      </div>
+      <div class="viewport hidden" id="vp3d">
+        <canvas id="canvas3d"></canvas>
+        <div class="view3d-tools">
+          <label class="toggle"><input type="checkbox" id="explode"> Explode floors</label>
+          <label class="toggle"><input type="checkbox" id="showRoof" checked> Roof</label>
+          <label class="toggle"><input type="checkbox" id="cutaway"> Cutaway walls</label>
+          <button class="linkbtn" id="btnOrbit">Reset view</button>
+        </div>
+        <p class="view3d-hint">drag to orbit · scroll to zoom · right-drag to pan</p>
+      </div>
+    </div>
+
+    <div class="stage-foot">
+      <div id="hoverInfo" class="hover-info">Hover a space to inspect it</div>
+      <div id="timing" class="timing"></div>
+    </div>
+  </section>
+
+  <!-- ─────────────── RIGHT: analysis ─────────────── -->
+  <aside class="panel panel-right">
+    <div class="tabs" id="rightTabs">
+      <button data-tab="validation" class="active">Validation<span class="badge" id="tabBadge"></span></button>
+      <button data-tab="score">Score</button>
+      <button data-tab="cost">Cost</button>
+      <button data-tab="schedule">Schedule</button>
+      <button data-tab="review">AI review</button>
+    </div>
+
+    <div class="tabpane active" id="tab-validation">
+      <div class="metrics-strip" id="metricsStrip"></div>
+      <div id="validationList" class="findings"></div>
+    </div>
+
+    <div class="tabpane" id="tab-score">
+      <div id="scoreBreakdown"></div>
+      <div id="relationshipList"></div>
+    </div>
+
+    <div class="tabpane" id="tab-cost">
+      <div id="costSummary"></div>
+      <div id="costTable"></div>
+    </div>
+
+    <div class="tabpane" id="tab-schedule">
+      <div id="roomSchedule"></div>
+    </div>
+
+    <div class="tabpane" id="tab-review">
+      <button class="btn small primary" id="btnCritique">Run AI design review</button>
+      <pre id="critiqueOut" class="critique"></pre>
+    </div>
+  </aside>
+</main>
+
+<div class="toast" id="toast" hidden></div>
+<div class="loading" id="loading" hidden><div class="spinner"></div><span id="loadingText">Planning…</span></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script type="module" src="/js/main.js"></script>
+</body>
+</html>
