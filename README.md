@@ -23,7 +23,7 @@ pip install -r requirements.txt
 python -m uvicorn app.main:app --port 8000
 ```
 
-Open [archimind-al-assisted-architectural.onrender.com](https://archimind-al-assisted-architectural.onrender.com/) . It works immediately with **no API key** — the brief
+Open [archimind](https://archimind-al-assisted-architectural.onrender.com/) . It works immediately with **no API key** — the brief
 parser and design reviewer fall back to deterministic local implementations.
 
 To enable the LLM path, set one variable before starting:
